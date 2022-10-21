@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="club.hsspace.i2hs.ImageMapper">
+    <insert id="insertFile" parameterType="club.hsspace.i2hs.entity.FileEntity">
+        INSERT INTO tb_file(file_id,image_id,path,size,image_width,image_length,upload_path) VALUES (#{fileId},#{imageId},#{path},#{size},#{imageWidth},#{imageLength},#{uploadPath});
+    </insert>
+
+    <insert id="insertImage" parameterType="club.hsspace.i2hs.entity.ImageEntity">
+        INSERT INTO tb_image(image_id,user_id,thumbnail_num,image_num,name,tag,enable,`delete`) VALUES (#{imageId},#{userId},#{thumbnailNum},#{imageNum},#{name},#{tag},#{enable},#{delete});
+    </insert>
+
+    <insert id="insertChain" parameterType="club.hsspace.i2hs.entity.ChainEntity">
+        INSERT INTO tb_chain(chain_id,chain_addr,image_id,`delete`) VALUES (#{chainId},#{chainAddr},#{imageId},#{delete});
+    </insert>
+
+    <select id="selectImageCount" resultType="Integer" parameterType="Long">
+        SELECT COUNT(*) FROM tb_image WHERE user_id = #{userId} AND `delete` = 0;
+    </select>
+
+    <select id="selectImage" resultType="club.hsspace.i2hs.entity.ImageEntity">
+        SELECT image_id AS imageId,user_id AS userId,thumbnail_num AS thumbnailNum,image_num AS imageNum,name,tag,enable,`delete`,update_time AS updateTime,create_time AS createTime FROM tb_image WHERE user_id = #{userId} AND `delete` = 0 LIMIT #{base}, #{offset};
+    </select>
+
+    <select id="selectImageOnce" resultType="club.hsspace.i2hs.entity.ImageEntity">
+        SELECT image_id AS imageId,user_id AS userId,thumbnail_num AS thumbnailNum,image_num AS imageNum,name,tag,enable,`delete`,update_time AS updateTime,create_time AS createTime FROM tb_image WHERE image_id = #{imageId} AND `delete` = 0;
+    </select>
+
+    <select id="lookupImage" resultType="hashmap">
+        SELECT tf.size AS thumSpace, concat_ws("*",tf.image_width,tf.image_length) AS thumSize,
+               yf.size AS picSpace, concat_ws("*",yf.image_width,yf.image_length) AS picSize,
+               im.create_time AS uploadTime, tf.path AS path
+        FROM tb_image AS im
+                 LEFT JOIN tb_file AS tf ON im.thumbnail_num = tf.file_id
+                 LEFT JOIN tb_file AS yf ON im.image_num = yf.file_id
+        WHERE im.image_id = #{imageId} AND im.user_id = #{userId};
+    </select>
+
+    <select id="selectFileOnce" resultType="club.hsspace.i2hs.entity.FileEntity">
+        SELECT file_id AS fileId,image_id AS imageId,path,`size`,image_width AS imageWidth,image_length AS imageLength,upload_path AS uploadPath,create_time AS createTime FROM tb_file WHERE file_id = #{fileId};
+    </select>
+
+    <select id="selectChainByChainAddr" resultType="club.hsspace.i2hs.entity.ChainEntity">
+        SELECT chain_id AS chainId,chain_addr AS chainAddr,image_id AS imageId,`delete`,update_time AS updateTime,create_time AS createTime FROM tb_chain WHERE chain_addr = #{chainAddr} AND `delete` = 0;
+    </select>
+
+    <update id="deleteImage">
+        UPDATE tb_image SET `delete` = 1 WHERE image_id = #{imageId} AND user_id = #{userId};
+    </update>
+
+    <insert id="insertVisit" parameterType="club.hsspace.i2hs.entity.VisitEntity">
+        INSERT INTO tb_visit(log_id,url,success,ip,chain_id) VALUES (#{logId},#{url},#{success},#{ip},#{chainId});
+    </insert>
+
+</mapper>
